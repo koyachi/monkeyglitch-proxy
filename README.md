@@ -4,6 +4,7 @@ A HTTP proxy for corrupting images.
 
 ## Example
 
+![example_result](https://raw.githubusercontent.com/koyachi/monkeyglitch-proxy/master/examples/monkeyglitchproxy+fotopedia.jpg)
 
 ## about "Monkey Glitch"
 
