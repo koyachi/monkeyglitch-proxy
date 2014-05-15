@@ -1,12 +1,15 @@
 package main
 
 import (
+	"github.com/codegangsta/cli"
 	"github.com/elazarl/goproxy"
 	"github.com/elazarl/goproxy/ext/image"
 	"io"
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
+	"strconv"
 )
 
 type MonkeyGlitcher struct {
@@ -32,10 +35,24 @@ func (m MonkeyGlitcher) Close() error {
 }
 
 func main() {
-	proxy := goproxy.NewProxyHttpServer()
-	proxy.OnResponse(goproxy_image.RespIsImage).DoFunc(func(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
-		resp.Body = &MonkeyGlitcher{ctx.Req.URL.String(), resp.Body, 0}
-		return resp
-	})
-	log.Fatal(http.ListenAndServe(":8080", proxy))
+	app := cli.NewApp()
+	app.Name = "monkeyglitch-proxy"
+	app.Usage = "A HTTP proxy for corrupting images."
+	app.Version = "0.0.1"
+	app.Flags = []cli.Flag{
+		cli.IntFlag{"port, p", 8080, "TCP/IP port number"},
+	}
+	app.Action = func(c *cli.Context) {
+		proxy := goproxy.NewProxyHttpServer()
+		proxy.OnResponse(goproxy_image.RespIsImage).DoFunc(func(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
+			resp.Body = &MonkeyGlitcher{ctx.Req.URL.String(), resp.Body, 0}
+			return resp
+		})
+		port := c.Int("port")
+		portStr := ":" + strconv.Itoa(port)
+		log.Printf("Starting %vserver with port %v\n", app.Name, portStr)
+		log.Fatal(http.ListenAndServe(portStr, proxy))
+	}
+	app.Run(os.Args)
+
 }
